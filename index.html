@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse — Team Health Check Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Sentient:ital,wght@0,400;0,500;1,400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest:    #1A3C34;
+    --forest2:   #234840;
+    --forest3:   #2D5A50;
+    --green:     #2D7A6A;
+    --green-lt:  #E8F4F1;
+    --green-mid: #B8DDD7;
+    --coral:     #E8624A;
+    --coral-lt:  #FEF0ED;
+    --coral-mid: #F5B8AC;
+    --gold:      #D4A843;
+    --gold-lt:   #FDF6E3;
+    --gold-mid:  #EDD89A;
+    --blue:      #4A7FA8;
+    --blue-lt:   #EBF2F8;
+    --white:     #FAFAF8;
+    --paper:     #F4F2EE;
+    --ink:       #1C1C1A;
+    --ink2:      #5C5A56;
+    --ink3:      #9C9A96;
+    --border:    rgba(28,28,26,0.1);
+    --border2:   rgba(28,28,26,0.06);
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'Manrope', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 55% 45% at 95% 5%,  rgba(45,122,106,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 35% at 5%  95%, rgba(232,98,74,0.04)  0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  .wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 28px 100px;
+    position:relative; z-index:1;
+  }
+
+  /* SCREENS */
+  .screen { display:none; }
+  .screen.active { display:block; animation: rise 0.45s cubic-bezier(.22,.68,0,1.1); }
+
+  @keyframes rise {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* HEADER */
+  header {
+    padding: 36px 0 26px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .brand { display:flex; align-items:center; gap:12px; }
+
+  .brand-icon {
+    width:38px; height:38px;
+    background: var(--forest);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+  }
+
+  .brand-name {
+    font-family:'Clash Display', sans-serif;
+    font-size:22px; font-weight:700;
+    color:var(--ink); letter-spacing:-0.5px;
+  }
+
+  .brand-sub {
+    font-size:11px; color:var(--ink3); font-weight:400;
+    letter-spacing:0.3px; margin-top:1px;
+  }
+
+  .header-tag {
+    font-size:11px; font-weight:600;
+    color:var(--green);
+    background:var(--green-lt);
+    border:1px solid var(--green-mid);
+    border-radius:100px;
+    padding:5px 14px; letter-spacing:0.5px;
+  }
+
+  /* HERO */
+  .hero { padding:72px 0 60px; }
+
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    margin-bottom:28px;
+  }
+
+  .eyebrow-line {
+    width:28px; height:2px;
+    background:var(--coral); border-radius:1px;
+  }
+
+  .eyebrow-text {
+    font-size:12px; font-weight:600; color:var(--coral);
+    letter-spacing:2.5px; text-transform:uppercase;
+  }
+
+  .hero h1 {
+    font-family:'Clash Display', sans-serif;
+    font-size:clamp(44px,8vw,70px);
+    font-weight:700; line-height:1.0;
+    letter-spacing:-2px; margin-bottom:14px;
+  }
+
+  .hero h1 .italic {
+    font-family:'Sentient', serif;
+    font-style:italic; font-weight:400;
+    color:var(--green); letter-spacing:-1px;
+  }
+
+  .hero p {
+    font-size:17px; line-height:1.8;
+    color:var(--ink2); font-weight:300;
+    max-width:520px; margin:20px 0 44px;
+  }
+
+  /* USE CASE CHIPS */
+  .use-cases {
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:48px;
+  }
+
+  .use-chip {
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:7px 16px;
+    font-size:13px; font-weight:400; color:var(--ink2);
+  }
+
+  /* FORM */
+  .form-section { padding:48px 0 0; }
+
+  .step-indicator {
+    display:flex; align-items:center; gap:8px;
+    margin-bottom:32px;
+  }
+
+  .step-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--border); transition:all 0.3s;
+  }
+
+  .step-dot.active { background:var(--green); transform:scale(1.3); }
+  .step-dot.done   { background:var(--green-mid); }
+
+  .form-block {
+    background:var(--white);
+    border:1.5px solid var(--border);
+    border-radius:20px;
+    padding:32px;
+    margin-bottom:16px;
+    transition:border-color 0.2s;
+  }
+
+  .form-block:focus-within { border-color:rgba(45,122,106,0.4); }
+
+  .block-label {
+    font-family:'Clash Display', sans-serif;
+    font-size:16px; font-weight:600;
+    letter-spacing:-0.3px; margin-bottom:4px;
+  }
+
+  .block-sub {
+    font-size:13px; color:var(--ink3); font-weight:300;
+    margin-bottom:24px; line-height:1.5;
+  }
+
+  .field { margin-bottom:20px; }
+
+  .field:last-child { margin-bottom:0; }
+
+  .field-label {
+    display:block;
+    font-size:11px; font-weight:600;
+    letter-spacing:2px; text-transform:uppercase;
+    color:var(--ink3); margin-bottom:10px;
+  }
+
+  .field-input, .field-select, .field-textarea {
+    width:100%;
+    background:var(--paper);
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    padding:14px 18px;
+    color:var(--ink);
+    font-family:'Manrope', sans-serif;
+    font-size:14px; font-weight:400;
+    outline:none;
+    transition:border-color 0.2s, box-shadow 0.2s;
+    appearance:none; -webkit-appearance:none;
+  }
+
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color:var(--green);
+    box-shadow:0 0 0 3px rgba(45,122,106,0.08);
+    background:var(--white);
+  }
+
+  .field-input::placeholder, .field-textarea::placeholder {
+    color:var(--ink3); font-style:italic;
+  }
+
+  .field-textarea { resize:none; min-height:80px; line-height:1.65; }
+
+  .field-select {
+    cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239C9A96' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 18px center;
+    background-color:var(--paper);
+    padding-right:44px;
+  }
+
+  .field-select option { background:#fff; }
+
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:520px){ .field-row{ grid-template-columns:1fr; } }
+
+  /* TAG TOGGLES */
+  .tag-group { display:flex; flex-wrap:wrap; gap:10px; }
+
+  .tag-toggle {
+    background:var(--paper);
+    border:1.5px solid var(--border);
+    border-radius:100px;
+    padding:9px 18px;
+    font-size:13px; font-weight:400;
+    cursor:pointer; transition:all 0.2s;
+    color:var(--ink2); user-select:none;
+  }
+
+  .tag-toggle:hover { border-color:var(--green-mid); color:var(--ink); }
+
+  .tag-toggle.on {
+    background:var(--green-lt);
+    border-color:var(--green);
+    color:var(--green); font-weight:600;
+  }
+
+  /* SLIDER */
+  .slider-header {
+    display:flex; justify-content:space-between;
+    align-items:baseline; margin-bottom:12px;
+  }
+
+  .slider-num {
+    font-family:'Clash Display', sans-serif;
+    font-size:26px; font-weight:700;
+    color:var(--green); letter-spacing:-1px;
+  }
+
+  .slider {
+    width:100%; height:4px;
+    appearance:none; -webkit-appearance:none;
+    background:var(--border);
+    border-radius:2px; outline:none; cursor:pointer;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance:none;
+    width:22px; height:22px; border-radius:50%;
+    background:var(--green);
+    border:3px solid white;
+    box-shadow:0 2px 8px rgba(45,122,106,0.35);
+    cursor:pointer;
+  }
+
+  .slider-ends {
+    display:flex; justify-content:space-between;
+    font-size:11px; color:var(--ink3); margin-top:8px;
+  }
+
+  /* DURATION PILLS */
+  .duration-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  }
+
+  @media(max-width:480px){ .duration-grid{ grid-template-columns:repeat(2,1fr); } }
+
+  .dur-pill {
+    background:var(--paper);
+    border:1.5px solid var(--border);
+    border-radius:12px; padding:14px 10px;
+    text-align:center; cursor:pointer; transition:all 0.2s;
+    user-select:none;
+  }
+
+  .dur-pill:hover { border-color:var(--green-mid); }
+
+  .dur-pill.on {
+    background:var(--green-lt);
+    border-color:var(--green);
+  }
+
+  .dur-pill-val {
+    font-family:'Clash Display', sans-serif;
+    font-size:18px; font-weight:700; color:var(--ink);
+    transition:color 0.2s;
+  }
+
+  .dur-pill.on .dur-pill-val { color:var(--green); }
+
+  .dur-pill-unit {
+    font-size:11px; color:var(--ink3); font-weight:400; margin-top:2px;
+  }
+
+  /* BUTTONS */
+  .btn-main {
+    width:100%;
+    background:var(--forest);
+    color:white; border:none;
+    border-radius:14px; padding:18px 36px;
+    font-family:'Clash Display', sans-serif;
+    font-size:16px; font-weight:600;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    letter-spacing:-0.3px;
+    margin-top:8px;
+  }
+
+  .btn-main:hover {
+    background:var(--forest3);
+    transform:translateY(-1px);
+    box-shadow:0 10px 32px rgba(26,60,52,0.25);
+  }
+
+  .btn-main:disabled {
+    opacity:0.25; cursor:not-allowed; transform:none; box-shadow:none;
+  }
+
+  .btn-back {
+    background:transparent; color:var(--ink3);
+    border:1.5px solid var(--border);
+    border-radius:10px; padding:12px 22px;
+    font-family:'Manrope', sans-serif; font-size:14px;
+    cursor:pointer; transition:all 0.2s; margin-top:12px;
+    width:100%;
+  }
+
+  .btn-back:hover { color:var(--ink); border-color:var(--ink3); }
+
+  /* LOADING */
+  #loadingScreen { text-align:center; padding:110px 0; }
+
+  .pulse-ring {
+    width:80px; height:80px; margin:0 auto 32px;
+    position:relative;
+  }
+
+  .pulse-ring::before, .pulse-ring::after {
+    content:'';
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:2px solid var(--green);
+    animation:pulseRing 1.8s ease-out infinite;
+  }
+
+  .pulse-ring::after { animation-delay:0.9s; }
+
+  .pulse-core {
+    position:absolute;
+    inset:24px;
+    background:var(--green);
+    border-radius:50%;
+    animation:pulseCore 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulseRing {
+    0%   { transform:scale(0.5); opacity:1; }
+    100% { transform:scale(1.4); opacity:0; }
+  }
+
+  @keyframes pulseCore {
+    0%,100% { transform:scale(0.95); opacity:0.8; }
+    50%      { transform:scale(1.05); opacity:1; }
+  }
+
+  .load-title {
+    font-family:'Clash Display', sans-serif;
+    font-size:26px; font-weight:700;
+    color:var(--ink); margin-bottom:10px; letter-spacing:-0.5px;
+  }
+
+  .load-sub {
+    font-size:14px; color:var(--ink3); font-weight:300;
+    animation:breathe 1.6s ease-in-out infinite;
+  }
+
+  @keyframes breathe { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+
+  /* RESULT */
+  .result-banner {
+    background:var(--forest);
+    border-radius:20px;
+    padding:36px;
+    margin:40px 0 32px;
+    position:relative; overflow:hidden;
+  }
+
+  .result-banner::before {
+    content:'';
+    position:absolute; top:-40px; right:-40px;
+    width:180px; height:180px; border-radius:50%;
+    background:rgba(255,255,255,0.04);
+  }
+
+  .result-banner::after {
+    content:'';
+    position:absolute; bottom:-60px; left:40%;
+    width:240px; height:240px; border-radius:50%;
+    background:rgba(255,255,255,0.02);
+  }
+
+  .rb-chips {
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;
+  }
+
+  .rb-chip {
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:100px; padding:4px 14px;
+    font-size:12px; font-weight:500; color:rgba(255,255,255,0.7);
+  }
+
+  .rb-chip.highlight {
+    background:rgba(232,98,74,0.25);
+    border-color:rgba(232,98,74,0.4);
+    color:#F5B8AC;
+  }
+
+  .rb-title {
+    font-family:'Clash Display', sans-serif;
+    font-size:clamp(26px,4vw,38px);
+    font-weight:700; color:white;
+    line-height:1.1; letter-spacing:-1px;
+    margin-bottom:12px; position:relative; z-index:1;
+  }
+
+  .rb-desc {
+    font-size:14px; color:rgba(255,255,255,0.6);
+    font-weight:300; line-height:1.7;
+    max-width:560px; position:relative; z-index:1;
+  }
+
+  /* SESSION OVERVIEW */
+  .overview-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+    margin-bottom:28px;
+  }
+
+  @media(max-width:500px){ .overview-grid{ grid-template-columns:1fr 1fr; } }
+
+  .overview-card {
+    background:white;
+    border:1px solid var(--border);
+    border-radius:14px; padding:18px;
+    text-align:center;
+  }
+
+  .ov-val {
+    font-family:'Clash Display', sans-serif;
+    font-size:22px; font-weight:700;
+    color:var(--green); display:block; line-height:1;
+    margin-bottom:4px;
+  }
+
+  .ov-label {
+    font-size:12px; color:var(--ink3); font-weight:400; line-height:1.4;
+  }
+
+  /* SECTION */
+  .result-section { margin-bottom:32px; }
+
+  .rs-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:18px; padding-bottom:14px;
+    border-bottom:1.5px solid var(--border);
+  }
+
+  .rs-icon {
+    width:36px; height:36px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+
+  .rs-icon-green  { background:var(--green-lt); }
+  .rs-icon-coral  { background:var(--coral-lt); }
+  .rs-icon-gold   { background:var(--gold-lt);  }
+  .rs-icon-blue   { background:var(--blue-lt);  }
+  .rs-icon-forest { background:rgba(26,60,52,0.08); }
+
+  .rs-title {
+    font-family:'Clash Display', sans-serif;
+    font-size:18px; font-weight:700; letter-spacing:-0.3px;
+  }
+
+  .rs-count {
+    margin-left:auto;
+    font-size:12px; color:var(--ink3);
+    background:var(--paper); border:1px solid var(--border);
+    border-radius:100px; padding:3px 12px;
+  }
+
+  /* PREP STEPS */
+  .prep-list { display:grid; gap:12px; }
+
+  .prep-item {
+    display:flex; gap:16px; align-items:flex-start;
+    background:white; border:1px solid var(--border);
+    border-radius:12px; padding:18px 20px;
+    animation:fadeIn 0.35s ease both;
+  }
+
+  @keyframes fadeIn {
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  .prep-num {
+    width:28px; height:28px; border-radius:50%;
+    background:var(--forest); color:white;
+    font-family:'Clash Display', sans-serif;
+    font-size:13px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; margin-top:1px;
+  }
+
+  .prep-text {
+    font-size:14px; line-height:1.65; color:var(--ink);
+    font-weight:400;
+  }
+
+  .prep-text strong { color:var(--forest); font-weight:600; }
+
+  /* QUESTIONS */
+  .q-list { display:grid; gap:14px; }
+
+  .q-item {
+    background:white; border:1px solid var(--border);
+    border-radius:16px; overflow:hidden;
+    transition:box-shadow 0.2s, border-color 0.2s;
+    animation:fadeIn 0.35s ease both;
+  }
+
+  .q-item:hover {
+    box-shadow:0 4px 20px rgba(28,28,26,0.07);
+    border-color:rgba(45,122,106,0.25);
+  }
+
+  .q-top {
+    padding:20px 22px 16px;
+    display:flex; gap:14px; align-items:flex-start;
+  }
+
+  .q-num {
+    font-family:'Sentient', serif;
+    font-style:italic; font-size:20px;
+    color:var(--green); flex-shrink:0; margin-top:2px;
+    width:22px; text-align:right; line-height:1.2;
+  }
+
+  .q-inner { flex:1; }
+
+  .q-type-tag {
+    font-size:10px; font-weight:600;
+    letter-spacing:1.5px; text-transform:uppercase;
+    border-radius:4px; padding:3px 8px;
+    display:inline-block; margin-bottom:10px;
+  }
+
+  .qt-health    { background:var(--green-lt);  color:var(--green); border:1px solid var(--green-mid); }
+  .qt-process   { background:var(--gold-lt);   color:var(--gold);  border:1px solid var(--gold-mid); }
+  .qt-safety    { background:var(--blue-lt);   color:var(--blue);  border:1px solid rgba(74,127,168,0.3); }
+  .qt-growth    { background:var(--coral-lt);  color:var(--coral); border:1px solid var(--coral-mid); }
+
+  .q-text {
+    font-size:15px; font-weight:500; line-height:1.6;
+    color:var(--ink); margin-bottom:8px;
+  }
+
+  .q-purpose {
+    font-size:13px; color:var(--ink3); font-weight:300;
+    line-height:1.55; font-style:italic;
+  }
+
+  .q-method {
+    border-top:1px solid var(--border2);
+    padding:12px 22px 12px 58px;
+    background:var(--paper);
+    display:flex; gap:10px; align-items:flex-start;
+  }
+
+  .q-method-tag {
+    font-size:10px; font-weight:600; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--ink3); flex-shrink:0; margin-top:2px;
+  }
+
+  .q-method-text {
+    font-size:13px; color:var(--ink2); line-height:1.55; font-weight:300;
+  }
+
+  .q-interpret {
+    border-top:1px solid var(--border2);
+    padding:14px 22px 14px 58px;
+  }
+
+  .q-interpret-label {
+    font-size:10px; font-weight:600; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--ink3); margin-bottom:10px;
+  }
+
+  .interpret-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:500px){ .interpret-grid{ grid-template-columns:1fr; } }
+
+  .ic {
+    border-radius:10px; padding:12px 14px;
+    font-size:12px; line-height:1.55; font-weight:300;
+  }
+
+  .ic-concern { background:rgba(232,98,74,0.07);  color:var(--coral); border:1px solid rgba(232,98,74,0.12); }
+  .ic-healthy { background:var(--green-lt); color:var(--green); border:1px solid var(--green-mid); }
+
+  .ic-label {
+    font-size:10px; font-weight:700; letter-spacing:1.5px;
+    text-transform:uppercase; margin-bottom:6px; opacity:0.8;
+  }
+
+  /* FACILITATION NOTES */
+  .fac-list { display:grid; gap:10px; }
+
+  .fac-item {
+    background:white; border:1px solid var(--border);
+    border-radius:12px; padding:18px 20px;
+    display:flex; gap:14px; align-items:flex-start;
+    animation:fadeIn 0.35s ease both;
+  }
+
+  .fac-icon {
+    width:32px; height:32px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; flex-shrink:0;
+  }
+
+  .fac-text { font-size:13px; line-height:1.65; color:var(--ink2); font-weight:300; }
+  .fac-text strong { color:var(--ink); font-weight:600; }
+
+  /* CLOSING */
+  .close-list { display:grid; gap:10px; }
+
+  .close-item {
+    background:white; border:1px solid var(--border);
+    border-radius:12px; padding:18px 20px;
+    display:flex; gap:14px; align-items:flex-start;
+  }
+
+  .close-arrow { color:var(--green); font-size:16px; flex-shrink:0; margin-top:1px; }
+
+  .close-text { font-size:14px; line-height:1.65; color:var(--ink); font-weight:400; }
+  .close-text strong { color:var(--forest); font-weight:600; }
+
+  /* EXPORT */
+  .export-block {
+    background:var(--paper); border:1.5px solid var(--border);
+    border-radius:16px; padding:28px; margin-top:36px;
+  }
+
+  .exp-title {
+    font-family:'Clash Display', sans-serif;
+    font-size:18px; font-weight:700; margin-bottom:6px;
+  }
+
+  .exp-desc {
+    font-size:13px; color:var(--ink3); font-weight:300;
+    margin-bottom:18px; line-height:1.6;
+  }
+
+  .exp-text {
+    background:white; border:1px solid var(--border);
+    border-radius:10px; padding:18px;
+    font-size:12px; line-height:1.85;
+    color:var(--ink2); white-space:pre-wrap;
+    max-height:240px; overflow-y:auto;
+    margin-bottom:16px; font-family:'Manrope', sans-serif;
+  }
+
+  .exp-text::-webkit-scrollbar { width:3px; }
+  .exp-text::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  .exp-btns { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .btn-copy {
+    background:transparent;
+    border:1.5px solid var(--green);
+    color:var(--green); border-radius:8px;
+    padding:10px 22px;
+    font-family:'Manrope', sans-serif;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+
+  .btn-copy:hover { background:var(--green); color:white; }
+
+  .restart-link {
+    display:block; margin-top:20px;
+    background:none; border:none;
+    font-family:'Manrope', sans-serif;
+    font-size:13px; color:var(--ink3);
+    cursor:pointer; text-decoration:underline;
+    text-underline-offset:3px; padding:0; transition:color 0.2s;
+  }
+
+  .restart-link:hover { color:var(--ink); }
+
+  /* ERROR */
+  .err-box {
+    background:var(--coral-lt); border:1px solid var(--coral-mid);
+    border-radius:12px; padding:20px 24px;
+    font-size:14px; color:var(--coral); line-height:1.6; margin-top:24px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">💚</div>
+      <div>
+        <div class="brand-name">Pulse</div>
+        <div class="brand-sub">Team Health Check Generator</div>
+      </div>
+    </div>
+    <div class="header-tag">AI-powered</div>
+  </header>
+
+  <!-- WELCOME -->
+  <div class="screen active" id="welcomeScreen">
+    <div class="hero">
+      <div class="hero-eyebrow">
+        <div class="eyebrow-line"></div>
+        <span class="eyebrow-text">For facilitators who care</span>
+      </div>
+      <h1>Run health checks<br>that <span class="italic">actually</span> land.</h1>
+      <p>Input your team's context and get a complete, ready-to-run session — questions, facilitation notes, timing, and how to interpret every answer. In under a minute.</p>
+      <button class="btn-main" style="max-width:260px;" onclick="goTo('formScreen')">
+        Build my session &nbsp;→
+      </button>
+    </div>
+
+    <div class="use-cases">
+      <div class="use-chip">👩‍💼 HR Consultants</div>
+      <div class="use-chip">🏃 Agile Coaches</div>
+      <div class="use-chip">👥 Team Leads</div>
+      <div class="use-chip">🧭 OD Practitioners</div>
+      <div class="use-chip">🎯 People Managers</div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="screen" id="formScreen">
+    <div class="form-section">
+
+      <div class="form-block">
+        <div class="block-label">About your team</div>
+        <div class="block-sub">Help us understand who this session is for.</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Team size</label>
+            <div class="slider-header">
+              <div class="slider-num" id="sizeVal">8</div>
+              <span style="font-size:12px;color:var(--ink3);">people</span>
+            </div>
+            <input type="range" class="slider" id="teamSize" min="3" max="30" value="8"
+              oninput="document.getElementById('sizeVal').textContent=this.value"/>
+            <div class="slider-ends"><span>3</span><span>15</span><span>30+</span></div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Team type</label>
+            <select class="field-select" id="teamType" onchange="checkForm()">
+              <option value="" disabled selected>Select...</option>
+              <option value="product">Product / Engineering</option>
+              <option value="sales">Sales / Commercial</option>
+              <option value="ops">Operations</option>
+              <option value="creative">Creative / Design</option>
+              <option value="leadership">Leadership team</option>
+              <option value="crossfunctional">Cross-functional</option>
+              <option value="project">Project team</option>
+              <option value="service">Customer service</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">How long has the team been together?</label>
+            <select class="field-select" id="teamAge">
+              <option value="new">Brand new (0–3 months)</option>
+              <option value="forming">Still forming (3–12 months)</option>
+              <option value="established" selected>Established (1–3 years)</option>
+              <option value="mature">Long-standing (3+ years)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Working setup</label>
+            <select class="field-select" id="workSetup">
+              <option value="office">Mostly in-office</option>
+              <option value="hybrid" selected>Hybrid</option>
+              <option value="remote">Fully remote</option>
+              <option value="distributed">Globally distributed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <div class="block-label">What's going on?</div>
+        <div class="block-sub">The more honest you are here, the more targeted the session will be.</div>
+
+        <div class="field">
+          <label class="field-label">Current challenges <span style="text-transform:none;letter-spacing:0;font-weight:300;font-size:11px;">(pick all that apply)</span></label>
+          <div class="tag-group" id="challengeTags">
+            <div class="tag-toggle on" data-v="communication">Communication</div>
+            <div class="tag-toggle on" data-v="trust">Trust & safety</div>
+            <div class="tag-toggle" data-v="clarity">Clarity of goals</div>
+            <div class="tag-toggle" data-v="workload">Workload & burnout</div>
+            <div class="tag-toggle" data-v="conflict">Conflict or tension</div>
+            <div class="tag-toggle" data-v="motivation">Low motivation</div>
+            <div class="tag-toggle" data-v="processes">Processes & ways of working</div>
+            <div class="tag-toggle" data-v="leadership">Leadership support</div>
+            <div class="tag-toggle" data-v="growth">Growth & development</div>
+            <div class="tag-toggle" data-v="change">Navigating change</div>
+            <div class="tag-toggle" data-v="collaboration">Cross-team collaboration</div>
+            <div class="tag-toggle" data-v="recognition">Recognition & appreciation</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Anything specific to know? <span style="text-transform:none;letter-spacing:0;font-weight:300;font-size:11px;">(optional)</span></label>
+          <textarea class="field-textarea" id="context"
+            placeholder="e.g. We recently went through a restructure. Two people left last month. The team is under pressure to deliver a big project by Q3..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <div class="block-label">Session settings</div>
+        <div class="block-sub">Configure your session format.</div>
+
+        <div class="field">
+          <label class="field-label">Primary goal of this session</label>
+          <select class="field-select" id="sessionGoal" onchange="checkForm()">
+            <option value="" disabled selected>What are you trying to achieve?</option>
+            <option value="temperature">Temperature check — understand where we're at</option>
+            <option value="issues">Surface issues — bring hidden problems into the open</option>
+            <option value="improve">Improvement focus — identify what to change</option>
+            <option value="celebrate">Celebrate and build on what's working</option>
+            <option value="reset">Team reset — rebuild after a difficult period</option>
+            <option value="norming">Norming — a newer team establishing ways of working</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Session duration</label>
+          <div class="duration-grid" id="durGrid">
+            <div class="dur-pill" data-dur="30" onclick="selectDur(this)">
+              <div class="dur-pill-val">30</div>
+              <div class="dur-pill-unit">mins</div>
+            </div>
+            <div class="dur-pill on" data-dur="60" onclick="selectDur(this)">
+              <div class="dur-pill-val">60</div>
+              <div class="dur-pill-unit">mins</div>
+            </div>
+            <div class="dur-pill" data-dur="90" onclick="selectDur(this)">
+              <div class="dur-pill-val">90</div>
+              <div class="dur-pill-unit">mins</div>
+            </div>
+            <div class="dur-pill" data-dur="120" onclick="selectDur(this)">
+              <div class="dur-pill-val">120</div>
+              <div class="dur-pill-unit">mins</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Your facilitation experience</label>
+          <select class="field-select" id="facilitatorLevel">
+            <option value="new">New to facilitation — need detailed guidance</option>
+            <option value="some" selected>Some experience — confident in basics</option>
+            <option value="experienced">Experienced — just need the content</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-main" id="genBtn" onclick="generate()" disabled>
+        Generate my session &nbsp;✦
+      </button>
+      <button class="btn-back" onclick="goTo('welcomeScreen')">← Back</button>
+
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="loadingScreen">
+    <div style="padding:110px 0;text-align:center;">
+      <div class="pulse-ring"><div class="pulse-core"></div></div>
+      <div class="load-title">Designing your session</div>
+      <div class="load-sub" id="loadMsg">Crafting questions for your team...</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="resultScreen"></div>
+
+</div>
+
+<script>
+let selectedDur = '60';
+let activeChallenges = new Set(['communication','trust']);
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function checkForm(){
+  const type = document.getElementById('teamType').value;
+  const goal = document.getElementById('sessionGoal').value;
+  document.getElementById('genBtn').disabled = !(type && goal);
+}
+
+// Init challenge tags
+document.querySelectorAll('#challengeTags .tag-toggle').forEach(el=>{
+  if(el.classList.contains('on')) activeChallenges.add(el.dataset.v);
+  el.addEventListener('click',()=>{
+    el.classList.toggle('on');
+    if(el.classList.contains('on')) activeChallenges.add(el.dataset.v);
+    else activeChallenges.delete(el.dataset.v);
+  });
+});
+
+function selectDur(el){
+  document.querySelectorAll('.dur-pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  selectedDur = el.dataset.dur;
+}
+
+const teamTypeLabels = {
+  product:'Product/Engineering',sales:'Sales/Commercial',ops:'Operations',
+  creative:'Creative/Design',leadership:'Leadership team',
+  crossfunctional:'Cross-functional',project:'Project team',
+  service:'Customer service',other:'Team'
+};
+
+const goalLabels = {
+  temperature:'Temperature check',issues:'Surface hidden issues',
+  improve:'Improvement focus',celebrate:'Celebrate what\'s working',
+  reset:'Team reset',norming:'Establish ways of working'
+};
+
+async function generate(){
+  const teamSize   = document.getElementById('teamSize').value;
+  const teamType   = document.getElementById('teamType').value;
+  const teamAge    = document.getElementById('teamAge').value;
+  const workSetup  = document.getElementById('workSetup').value;
+  const sessionGoal= document.getElementById('sessionGoal').value;
+  const facLevel   = document.getElementById('facilitatorLevel').value;
+  const context    = document.getElementById('context').value.trim();
+  const challenges = [...activeChallenges].join(', ') || 'general team health';
+
+  goTo('loadingScreen');
+
+  const msgs = [
+    'Crafting questions for your team...',
+    'Writing facilitation notes...',
+    'Building interpretation guidance...',
+    'Designing your session flow...',
+    'Putting it all together...',
+  ];
+  let i=0;
+  const el=document.getElementById('loadMsg');
+  const iv=setInterval(()=>{i=(i+1)%msgs.length;el.textContent=msgs[i];},600);
+
+  const prompt = `You are an expert organisational development facilitator and team coach with deep experience running team health checks, retrospectives, and psychological safety workshops.
+
+Design a complete, ready-to-run team health check session based on these inputs:
+
+TEAM CONTEXT:
+- Team size: ${teamSize} people
+- Team type: ${teamTypeLabels[teamType]||teamType}
+- Team tenure: ${teamAge}
+- Working setup: ${workSetup}
+- Current challenges: ${challenges}
+- Additional context: ${context||'none provided'}
+
+SESSION PARAMETERS:
+- Primary goal: ${goalLabels[sessionGoal]||sessionGoal}
+- Duration: ${selectedDur} minutes
+- Facilitator experience: ${facLevel}
+
+INSTRUCTIONS:
+1. Design 6-10 health check questions specifically relevant to THIS team's challenges and goal
+2. Questions should be a mix of: health/wellbeing, process/ways of working, psychological safety, and team growth
+3. Each question needs: the question itself, why it's being asked (1 sentence), the facilitation method (individual reflection, pair discussion, open group, anonymous vote, etc.), and how to interpret responses (what concern looks like vs what healthy looks like)
+4. Include a session agenda with timing that fits within ${selectedDur} minutes
+5. Include 4-5 preparation steps the facilitator should take before the session
+6. Include 4-6 specific facilitation notes (tips, warnings, how to handle difficult moments) — calibrated to ${facLevel} experience level
+7. Include 3-4 closing moves — how to end the session well and ensure follow-through
+8. Write a 1-sentence session purpose statement
+
+Be genuinely specific to this team — not generic workshop content. The questions should feel like they were written for THIS situation.
+
+Respond ONLY with valid JSON (no markdown):
+{
+  "sessionPurpose": "One sentence describing what this session will achieve.",
+  "agenda": [
+    { "time": "0-5 mins", "activity": "Activity name", "description": "What happens" }
+  ],
+  "prepSteps": [
+    { "title": "Step title", "detail": "Specific preparation instruction" }
+  ],
+  "questions": [
+    {
+      "type": "health",
+      "question": "The full question text",
+      "why": "Why this question matters for this team specifically",
+      "method": "How to run this question (individual/pairs/group/anonymous)",
+      "methodDetail": "Specific instruction on how to facilitate this question",
+      "concern": "What a concerning or unhealthy response pattern looks like",
+      "healthy": "What a healthy or positive response looks like"
+    }
+  ],
+  "facilitationNotes": [
+    { "icon": "⚠️", "note": "Specific facilitation tip or warning", "bg": "#FDF3E2" }
+  ],
+  "closingMoves": [
+    { "title": "Move title", "detail": "How to do it specifically" }
+  ]
+}
+
+Question type values must be one of: "health", "process", "safety", "growth"
+For facilitationNotes, use relevant emoji icons and these bg colors: green light=#E8F4F1, amber light=#FDF3E2, coral light=#FEF0ED, blue light=#EBF2F8`;
+
+  try{
+    const res = await fetch('/.netlify/functions/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    clearInterval(iv);
+    if(!res.ok) {
+      const errBody = await res.text();
+      console.error('API error status:', res.status, errBody);
+      throw new Error(`API ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw  = data.content.map(b=>b.text||'').join('');
+    console.log('Raw API response:', raw.substring(0, 200));
+    const clean= raw.replace(/```json|```/g,'').trim();
+    let session;
+    try {
+      session = JSON.parse(clean);
+    } catch(parseErr) {
+      console.error('JSON parse failed. Raw response was:', raw);
+      throw new Error('JSON parse failed: ' + parseErr.message);
+    }
+
+    renderResult(session,{teamSize,teamType,teamAge,workSetup,sessionGoal,challenges});
+
+  } catch(err){
+    clearInterval(iv);
+    document.getElementById('resultScreen').innerHTML=`
+      <div style="padding:48px 0;">
+        <div class="err-box">
+          <strong>Something went wrong.</strong><br><br>
+          ${err.message.includes('API')?'Could not connect to the generation service. Please check your connection and try again.':'There was an error generating your session. Please try again.'}
+          <br><br>
+          <button class="btn-back" style="max-width:200px;margin-top:8px;" onclick="goTo('formScreen')">← Try again</button>
+        </div>
+      </div>`;
+    goTo('resultScreen');
+  }
+}
+
+const qTypeLabels = {health:'Team Health',process:'Process',safety:'Psychological Safety',growth:'Growth'};
+const qTypeClasses= {health:'qt-health',process:'qt-process',safety:'qt-safety',growth:'qt-growth'};
+
+function renderResult(session, meta){
+  const qs   = session.questions||[];
+  const prep = session.prepSteps||[];
+  const fac  = session.facilitationNotes||[];
+  const cls  = session.closingMoves||[];
+  const agenda=session.agenda||[];
+
+  // Agenda HTML
+  const agendaHtml = agenda.map((a,i)=>`
+    <div class="prep-item" style="animation-delay:${i*0.06}s">
+      <div class="prep-num">${i+1}</div>
+      <div class="prep-text">
+        <strong>${esc(a.time)} — ${esc(a.activity)}</strong><br>
+        ${esc(a.description)}
+      </div>
+    </div>
+  `).join('');
+
+  // Prep HTML
+  const prepHtml = prep.map((p,i)=>`
+    <div class="prep-item" style="animation-delay:${i*0.06}s">
+      <div class="prep-num">${i+1}</div>
+      <div class="prep-text"><strong>${esc(p.title)}</strong><br>${esc(p.detail)}</div>
+    </div>
+  `).join('');
+
+  // Questions HTML
+  const qHtml = qs.map((q,i)=>`
+    <div class="q-item" style="animation-delay:${i*0.05}s">
+      <div class="q-top">
+        <div class="q-num">${i+1}</div>
+        <div class="q-inner">
+          <div class="q-type-tag ${qTypeClasses[q.type]||'qt-health'}">${qTypeLabels[q.type]||q.type}</div>
+          <div class="q-text">${esc(q.question)}</div>
+          ${q.why?`<div class="q-purpose">Why ask this: ${esc(q.why)}</div>`:''}
+        </div>
+      </div>
+      ${q.method?`
+        <div class="q-method">
+          <div class="q-method-tag">Method</div>
+          <div class="q-method-text"><strong>${esc(q.method)}</strong>${q.methodDetail?' — '+esc(q.methodDetail):''}</div>
+        </div>
+      `:''}
+      ${(q.concern||q.healthy)?`
+        <div class="q-interpret">
+          <div class="q-interpret-label">How to interpret responses</div>
+          <div class="interpret-grid">
+            ${q.concern?`<div class="ic ic-concern"><div class="ic-label">⚠️ Concern signals</div>${esc(q.concern)}</div>`:''}
+            ${q.healthy?`<div class="ic ic-healthy"><div class="ic-label">✓ Healthy signals</div>${esc(q.healthy)}</div>`:''}
+          </div>
+        </div>
+      `:''}
+    </div>
+  `).join('');
+
+  // Facilitation HTML
+  const facHtml = fac.map((f,i)=>`
+    <div class="fac-item" style="animation-delay:${i*0.06}s">
+      <div class="fac-icon" style="background:${f.bg||'var(--green-lt)'};">${f.icon||'💡'}</div>
+      <div class="fac-text">${esc(f.note)}</div>
+    </div>
+  `).join('');
+
+  // Closing HTML
+  const closeHtml = cls.map((c,i)=>`
+    <div class="close-item" style="animation-delay:${i*0.05}s">
+      <div class="close-arrow">→</div>
+      <div class="close-text"><strong>${esc(c.title)}</strong><br>${esc(c.detail)}</div>
+    </div>
+  `).join('');
+
+  const exportTxt = buildExport(session, meta);
+
+  const html=`
+    <div class="result-banner">
+      <div class="rb-chips">
+        <span class="rb-chip">${teamTypeLabels[meta.teamType]||meta.teamType}</span>
+        <span class="rb-chip">${meta.teamSize} people</span>
+        <span class="rb-chip">${selectedDur} mins</span>
+        <span class="rb-chip highlight">${goalLabels[meta.sessionGoal]||meta.sessionGoal}</span>
+      </div>
+      <div class="rb-title">Your team health<br>check session.</div>
+      ${session.sessionPurpose?`<div class="rb-desc">${esc(session.sessionPurpose)}</div>`:''}
+    </div>
+
+    <div class="overview-grid">
+      <div class="overview-card">
+        <span class="ov-val">${qs.length}</span>
+        <div class="ov-label">Health check questions</div>
+      </div>
+      <div class="overview-card">
+        <span class="ov-val">${selectedDur}m</span>
+        <div class="ov-label">Total session time</div>
+      </div>
+      <div class="overview-card">
+        <span class="ov-val">${fac.length}</span>
+        <div class="ov-label">Facilitation notes</div>
+      </div>
+    </div>
+
+    ${agenda.length?`
+      <div class="result-section">
+        <div class="rs-header">
+          <div class="rs-icon rs-icon-forest">🗓</div>
+          <div class="rs-title">Session Agenda</div>
+          <div class="rs-count">${agenda.length} segments</div>
+        </div>
+        <div class="prep-list">${agendaHtml}</div>
+      </div>
+    `:''}
+
+    ${prep.length?`
+      <div class="result-section">
+        <div class="rs-header">
+          <div class="rs-icon rs-icon-gold">✅</div>
+          <div class="rs-title">Before the Session</div>
+          <div class="rs-count">${prep.length} steps</div>
+        </div>
+        <div class="prep-list">${prepHtml}</div>
+      </div>
+    `:''}
+
+    <div class="result-section">
+      <div class="rs-header">
+        <div class="rs-icon rs-icon-green">💬</div>
+        <div class="rs-title">Health Check Questions</div>
+        <div class="rs-count">${qs.length} questions</div>
+      </div>
+      <div class="q-list">${qHtml}</div>
+    </div>
+
+    ${fac.length?`
+      <div class="result-section">
+        <div class="rs-header">
+          <div class="rs-icon rs-icon-coral">🎯</div>
+          <div class="rs-title">Facilitation Notes</div>
+          <div class="rs-count">${fac.length} notes</div>
+        </div>
+        <div class="fac-list">${facHtml}</div>
+      </div>
+    `:''}
+
+    ${cls.length?`
+      <div class="result-section">
+        <div class="rs-header">
+          <div class="rs-icon rs-icon-blue">🏁</div>
+          <div class="rs-title">How to Close</div>
+          <div class="rs-count">${cls.length} moves</div>
+        </div>
+        <div class="close-list">${closeHtml}</div>
+      </div>
+    `:''}
+
+    <div class="export-block">
+      <div class="exp-title">Export session</div>
+      <p class="exp-desc">Copy your full session plan to paste into a doc, share with co-facilitators, or use as a run sheet on the day.</p>
+      <div class="exp-text" id="expOut">${exportTxt}</div>
+      <div class="exp-btns">
+        <button class="btn-copy" onclick="copySession()">Copy full session</button>
+      </div>
+    </div>
+
+    <button class="restart-link" onclick="goTo('formScreen')">← Build another session</button>
+  `;
+
+  document.getElementById('resultScreen').innerHTML=html;
+  goTo('resultScreen');
+}
+
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildExport(session, meta){
+  const date = new Date().toLocaleDateString('en-GB');
+  let t = `PULSE — TEAM HEALTH CHECK SESSION PLAN\n`;
+  t += `Team: ${teamTypeLabels[meta.teamType]||meta.teamType} · ${meta.teamSize} people · ${selectedDur} mins\n`;
+  t += `Goal: ${goalLabels[meta.sessionGoal]||meta.sessionGoal}\n`;
+  t += `Generated: ${date}\n${'═'.repeat(52)}\n\n`;
+
+  if(session.sessionPurpose) t += `SESSION PURPOSE\n${session.sessionPurpose}\n\n`;
+
+  if(session.agenda?.length){
+    t += `${'─'.repeat(52)}\nSESSION AGENDA\n${'─'.repeat(52)}\n`;
+    session.agenda.forEach((a,i)=>{ t+=`${i+1}. ${a.time} — ${a.activity}\n   ${a.description}\n\n`; });
+  }
+
+  if(session.prepSteps?.length){
+    t += `${'─'.repeat(52)}\nBEFORE THE SESSION\n${'─'.repeat(52)}\n`;
+    session.prepSteps.forEach((p,i)=>{ t+=`${i+1}. ${p.title}\n   ${p.detail}\n\n`; });
+  }
+
+  if(session.questions?.length){
+    t += `${'─'.repeat(52)}\nHEALTH CHECK QUESTIONS\n${'─'.repeat(52)}\n\n`;
+    session.questions.forEach((q,i)=>{
+      t += `Q${i+1}. [${(q.type||'').toUpperCase()}] ${q.question}\n\n`;
+      if(q.why)          t += `Why: ${q.why}\n`;
+      if(q.method)       t += `Method: ${q.method}${q.methodDetail?' — '+q.methodDetail:''}\n`;
+      if(q.concern)      t += `⚠️  Concern signals: ${q.concern}\n`;
+      if(q.healthy)      t += `✓  Healthy signals: ${q.healthy}\n`;
+      t += '\n';
+    });
+  }
+
+  if(session.facilitationNotes?.length){
+    t += `${'─'.repeat(52)}\nFACILITATION NOTES\n${'─'.repeat(52)}\n`;
+    session.facilitationNotes.forEach(f=>{ t+=`${f.icon||'•'} ${f.note}\n\n`; });
+  }
+
+  if(session.closingMoves?.length){
+    t += `${'─'.repeat(52)}\nHOW TO CLOSE\n${'─'.repeat(52)}\n`;
+    session.closingMoves.forEach((c,i)=>{ t+=`${i+1}. ${c.title}\n   ${c.detail}\n\n`; });
+  }
+
+  t += `${'═'.repeat(52)}\nGenerated by Pulse — Team Health Check Generator`;
+  return t;
+}
+
+function copySession(){
+  navigator.clipboard.writeText(document.getElementById('expOut').innerText).then(()=>{
+    const b=document.querySelector('.btn-copy');
+    b.textContent='✓ Copied!';
+    setTimeout(()=>b.textContent='Copy full session',2000);
+  });
+}
+</script>
+</body>
+</html>

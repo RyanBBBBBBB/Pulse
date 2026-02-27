@@ -1,0 +1,6 @@
+{
+  "name": "pulse-team-health-check",
+  "version": "1.0.0",
+  "description": "Pulse — Team Health Check Generator",
+  "private": true
+}
